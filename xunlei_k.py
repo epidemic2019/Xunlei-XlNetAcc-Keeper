@@ -31,7 +31,7 @@ class KuaiNiao_Client:
         self._sequence = ""
         self.getCookies()
         if self._peerid == "":
-            self._peerid = self._random_uuid4()
+            self._peerid = self._cookies["kn-speed-peer-id"]
         if self._sequence == "":
             self._sequence = self._random_int()
         self._dsq = self.DownSpeedQuery()
@@ -181,7 +181,6 @@ class KuaiNiao_Client:
         result = self._httpclient.get("https://xlkn-ssl.xunlei.com/bandwidth", params=params,headers=self._default_header).json()
         if result["errno"]!=0:
             print("[Error]:"+result["richmessage"])
-            exit(0)
         return result
     def UpgradeBW(self):
         self._dsq = self.DownSpeedQuery()
@@ -244,6 +243,7 @@ def set_interval(func, sec):
     return t
 
 def update_speedup(kn_c):
+    kn_c.showInitMsg()
     print("[Info]:"+kn_c.PingUser()["msg"])
     print("[Info]:"+kn_c.RecoverBW()["message"]+"等待上线加速...")
     time.sleep(60)
@@ -257,11 +257,9 @@ if __name__ == "__main__":
     # print(kn_c.UPSpeedQuery())
     # print(kn_c.BandwidthInfo())
     # print(kn_c.UpgradeBW())
-    kn_c.showInitMsg()
     update_speedup(kn_c)
-    set_interval(lambda: kn_c.showInitMsg(), 60*60*2)
     set_interval(lambda: print("[Info]:"+kn_c.PingUser()["msg"]), 60*15)
-    set_interval(lambda: update_speedup(kn_c), 60*60*1.5)
+    set_interval(lambda: update_speedup(kn_c), 60*60*12)
     for t in wait_t_arr:
         t.join()
-    print("Ending...")
+    input("Quit...")
