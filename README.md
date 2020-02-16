@@ -9,5 +9,10 @@
 * 完成
 
 # 效果
-<img src="./static/run.png" width = "800"  div align=center />
-<img src="./static/result.png" width = "800"  div align=center />
+<img src="./static/run.png" width = "800" align=center />
+<img src="./static/result.png" width = "800" align=center />
+
+# ISSUES
+* 默认用户心跳包15分钟一次,1.5小时更新加速一次.
+* 如果出现网络错误,那可能因为有两点，①你暴力刷API,导致服务器Banned了你，建议你冷却技能。②你的Cookie失效了，请更新Cookie，一般不可能，除非你在浏览器注销?
+* 如果出现`speedup server already speed up`的提示，那么请隔日再来把，你用官方客户端也加速不了，这个是因为你路由器重新拨号导致旧的IP加速没下线，so,需要等24小时等迅雷那边自动释放?
