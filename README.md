@@ -16,7 +16,6 @@
 * 出现`#日期`，这样格式的消息，则视为加速成功
 * 默认用户心跳包15分钟一次,12小时更新加速一次.
 * 如果出现网络错误,那可能因为有两点，①你暴力刷API,导致服务器Banned了你，建议你冷却技能。②你的Cookie失效了，请更新Cookie，一般不可能，除非你在浏览器注销?
-* 如果出现`speedup server already speed up`的提示，那么请隔日再来把，你用官方客户端也加速不了，这个是因为你路由器重新拨号导致旧的IP加速没下线，so,需要等24小时等迅雷那边自动释放?
+* 如果出现`speedup server already speed up`的提示，一般由于sessionid丢失问题,不知道已经加速的sessionid是无法停止原来的加速,除非等24小时sessionid无效,或者找到加速时候的sessionID
 * 可以用PM2,service,systemctl去让随系统自启动
 * 项目本质只是封装网页版的快鸟加速API
-* 目前无法判断宽带是否加速，因为不知道有没有相关API
