@@ -22,7 +22,7 @@ class KuaiNiao_Client:
             r"\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b", iptext)[0]
         # InitData
         self._status = -1  # -1 未初始化
-        self._default_header ={
+        self._default_header = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.130 Safari/537.36",
         }
         self._httpclient = requests.session()
@@ -36,6 +36,7 @@ class KuaiNiao_Client:
             self._sequence = self._random_int()
         self._dsq = self.DownSpeedQuery()
         self._bwq = self.BandwidthInfo()
+
     def showInitMsg(self):
         dsq = self._dsq
         bwq = self._bwq
@@ -72,7 +73,7 @@ class KuaiNiao_Client:
             "ckey": "rules",
             "format": "json"
         }
-        return self._httpclient.get("https://xluser-ssl.xunlei.com/config/v1/PubGetOne", params=params,headers=self._default_header).json()
+        return self._httpclient.get("https://xluser-ssl.xunlei.com/config/v1/PubGetOne", params=params, headers=self._default_header).json()
 
     # 用户心跳包
     def PingUser(self):
@@ -141,10 +142,10 @@ class KuaiNiao_Client:
             "_": self._time_int()
         }
         result = self._httpclient.get(
-            "https://xlkn-ssl.xunlei.com/queryportal", params=params,headers=self._default_header).json()
-        #realip = self._getRealIP(
+            "https://xlkn-ssl.xunlei.com/queryportal", params=params, headers=self._default_header).json()
+        # realip = self._getRealIP(
         #    self._httpclient.get("http://ip.3322.net").text)
-        #if result["interface_ip"] != realip:
+        # if result["interface_ip"] != realip:
         #    print("[Info]:FixRealIP:%s->%s" % (result["interface_ip"], realip))
         #    result["interface_ip"] = realip
         return result
@@ -162,7 +163,7 @@ class KuaiNiao_Client:
             "client_version": "2.0.0",
             "_": self._time_int()
         }
-        return self._httpclient.get("https://upspeed-swjsq-ssl.xunlei.com/queryportal", params=params,headers=self._default_header).json()
+        return self._httpclient.get("https://upspeed-swjsq-ssl.xunlei.com/queryportal", params=params, headers=self._default_header).json()
 
     def BandwidthInfo(self):
         downspeedquery = self._dsq
@@ -178,10 +179,30 @@ class KuaiNiao_Client:
             "client_version":  "2.0.0",
             "_": self._time_int()
         }
-        result = self._httpclient.get("https://xlkn-ssl.xunlei.com/bandwidth", params=params,headers=self._default_header).json()
-        if result["errno"]!=0:
+        result = self._httpclient.get(
+            "https://xlkn-ssl.xunlei.com/bandwidth", params=params, headers=self._default_header).json()
+        if result["errno"] != 0:
             print("[Error]:"+result["richmessage"])
         return result
+
+    def GetNoLoginBandwidthInfo(self):
+        downspeedquery = self._dsq
+        params = {
+            "host": downspeedquery["interface_ip"],
+            "port": downspeedquery["interface_port"],
+            "callback": "",
+            "sequence": self._random_int(),
+            "peerid": self._random_uuid4(),
+            "sessionid": "",
+            "userid": "",
+            "client_type": "kn-speed",
+            "client_version":  "2.0.0",
+            "_": self._time_int()
+        }
+        result = requests.get("https://xlkn-ssl.xunlei.com/bandwidth",
+                              params=params, headers=self._default_header).json()
+        return result
+
     def UpgradeBW(self):
         self._dsq = self.DownSpeedQuery()
         self._bwq = self.BandwidthInfo()
@@ -202,7 +223,8 @@ class KuaiNiao_Client:
             "_": self._time_int()
         }
         result = self._httpclient.get(
-            "https://xlkn-ssl.xunlei.com/upgrade", params=params,headers=self._default_header).json()
+            "https://xlkn-ssl.xunlei.com/upgrade", params=params, headers=self._default_header).json()
+        self.lastUpgradeMsg = result["message"]
         return result
 
     def RecoverBW(self):
@@ -224,7 +246,7 @@ class KuaiNiao_Client:
             "_": self._time_int()
         }
         result = self._httpclient.get(
-            "https://xlkn-ssl.xunlei.com/recover", params=params,headers=self._default_header).json()
+            "https://xlkn-ssl.xunlei.com/recover", params=params, headers=self._default_header).json()
         if result["errno"] == 0:
             result["message"] = "下线成功!"
         return result
@@ -242,12 +264,15 @@ def set_interval(func, sec):
     wait_t_arr.append(t)
     return t
 
+
 def update_speedup(kn_c):
     kn_c.showInitMsg()
-    print("[Info]:"+kn_c.PingUser()["msg"])
-    print("[Info]:"+kn_c.RecoverBW()["message"]+"等待上线加速...")
-    time.sleep(60)
-    print("[Info]:"+kn_c.UpgradeBW()["message"])
+    bwg_info = kn_c.GetNoLoginBandwidthInfo()
+    if bwg_info["errno"] == 6020:
+        print(bwg_info["message"])
+    else:
+        print("[Info]:"+kn_c.UpgradeBW()["message"])
+
 
 if __name__ == "__main__":
     kn_c = KuaiNiao_Client()
@@ -259,7 +284,7 @@ if __name__ == "__main__":
     # print(kn_c.UpgradeBW())
     update_speedup(kn_c)
     set_interval(lambda: print("[Info]:"+kn_c.PingUser()["msg"]), 60*15)
-    set_interval(lambda: update_speedup(kn_c), 60*60*12)
+    set_interval(lambda: update_speedup(kn_c), 60*60*0.5)
     for t in wait_t_arr:
         t.join()
     input("Quit...")
